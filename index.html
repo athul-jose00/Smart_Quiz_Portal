@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Quiz Portal | Automated Quiz Management System</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link rel="icon" href="images/logo.png" type="image/png" />
+    <!-- Particles.js CDN -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    
+  </head>
+  <body>
+    <div class="particles" id="particles-js"></div>
+
+    <div class="container">
+      <header>
+        <div class="logo">
+          <!--<img src="images/logo.png" alt="Smart Quiz Portal Logo">-->
+          <h1>Smart Quiz Portal</h1>
+        </div>
+
+        <nav>
+          <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </nav>
+
+        <div class="auth-buttons">
+          <a href="auth/login.php" class="btn btn-outline">Login</a>
+          <a href="auth/register.php" class="btn btn-primary">Register</a>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-content">
+          <h2>Transform Your <span>Teaching Experience</span></h2>
+          <p>
+            An automated quiz platform that saves teachers time while providing
+            students with immediate feedback and performance analytics.
+          </p>
+          <div class="hero-buttons">
+            <a href="auth/register.php" class="btn btn-primary btn-lg"
+              >Register Now</a
+            >
+          </div>
+        </div>
+        <!--<div class="hero-image">
+                <img src="images/hero-illustration.png" alt="Smart Quiz Portal Interface">
+            </div>-->
+      </section>
+
+      <section id="features" class="features">
+        <div class="container">
+          <div class="section-title">
+            <h3>Core Features</h3>
+            <p>
+              Our platform addresses the limitations of traditional assessment
+              methods
+            </p>
+          </div>
+
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="fas fa-bolt"></i>
+              </div>
+              <h4>Automated Grading</h4>
+              <p>
+                Instant scoring eliminates manual grading, providing immediate
+                results to students and teachers.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="fas fa-user-shield"></i>
+              </div>
+              <h4>Role-based System</h4>
+              <p>
+                Distinct interfaces for Admins, Teachers, and Students with
+                appropriate permissions.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="fas fa-users"></i>
+              </div>
+              <h4>Class Management</h4>
+              <p>
+                Teachers create classes with unique codes that students use to
+                join multiple classes.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="fas fa-chart-bar"></i>
+              </div>
+              <h4>Performance Analytics</h4>
+              <p>
+                Track student progress over time with detailed reports and
+                visualizations.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="fas fa-lock"></i>
+              </div>
+              <h4>Secure Platform</h4>
+              <p>
+                Encrypted passwords and session management ensure data security
+                and privacy.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="fas fa-clock"></i>
+              </div>
+              <h4>Timed Assessments</h4>
+              <p>
+                Set time limits for quizzes to simulate exam conditions and
+                manage class time effectively.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="role-showcase">
+        <div class="container">
+          <div class="section-title">
+            <h3>Designed for Educational Institutions</h3>
+            <p>
+              Tailored experiences for each stakeholder in the learning process
+            </p>
+          </div>
+
+          <div class="role-cards">
+            <!-- Admin Card -->
+            <div class="role-card">
+              <div class="role-icon">
+                <i class="fas fa-user-cog fa-3x" style="color: #4e73df"></i>
+                <!-- Admin Icon -->
+              </div>
+              <h4>Administrators</h4>
+              <ul>
+                <li>User management and oversight</li>
+                <li>System configuration</li>
+                <li>Institutional reporting</li>
+                <li>Platform maintenance</li>
+              </ul>
+            </div>
+
+            <!-- Teacher Card -->
+            <div class="role-card">
+              <div class="role-icon">
+                <i
+                  class="fas fa-chalkboard-teacher fa-3x"
+                  style="color: #1cc88a"
+                ></i>
+                <!-- Teacher Icon -->
+              </div>
+              <h4>Educators</h4>
+              <ul>
+                <li>Create and manage classes</li>
+                <li>Design assessments</li>
+                <li>Monitor student progress</li>
+                <li>Generate detailed reports</li>
+              </ul>
+            </div>
+
+            <!-- Student Card -->
+            <div class="role-card">
+              <div class="role-icon">
+                <i
+                  class="fas fa-user-graduate fa-3x"
+                  style="color: #f6c23e"
+                ></i>
+                <!-- Student Icon -->
+              </div>
+              <h4>Students</h4>
+              <ul>
+                <li>Join classes with codes</li>
+                <li>Complete assigned quizzes</li>
+                <li>Receive instant feedback</li>
+                <li>Track learning progress</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="how-it-works" class="how-it-works">
+        <div class="container">
+          <div class="section-title">
+            <h3>Implementation Workflow</h3>
+            <p>
+              The systematic process for deploying Smart Quiz Portal in your
+              institution
+            </p>
+          </div>
+
+          <div class="steps">
+            <div class="step">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h4>System Installation</h4>
+                <p>
+                  Deploy the platform on your institutional servers or cloud
+                  infrastructure using our comprehensive installation guide.
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h4>Administrator Setup</h4>
+                <p>
+                  Configure institutional settings, create departments, and
+                  establish user roles and permissions.
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h4>Faculty Onboarding</h4>
+                <p>
+                  Teachers receive training on creating classes, designing
+                  quizzes, and interpreting analytics.
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <h4>Student Enrollment</h4>
+                <p>
+                  Students are registered either through bulk import or
+                  self-registration with class codes.
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-number">5</div>
+              <div class="step-content">
+                <h4>Ongoing Support</h4>
+                <p>
+                  Our technical team provides continuous support and regular
+                  system updates.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- Add this section before the footer -->
+      <section id="contact" class="contact-section">
+        <div class="container">
+          <div class="contact-form">
+            <div class="section-title">
+              <h3>Contact Us</h3>
+              <p>
+                Have questions? Send us a message and we'll get back to you
+                promptly.
+              </p>
+            </div>
+
+            <form
+              class="contact-form"
+              action="processes/contact_process.php"
+              method="POST"
+            >
+              <div class="form-group">
+                <input
+                  type="text"
+                  name="name"
+                  class="form-control"
+                  placeholder="Your Name"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <input
+                  type="email"
+                  name="email"
+                  class="form-control"
+                  placeholder="Your Email"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <input
+                  type="text"
+                  name="subject"
+                  class="form-control"
+                  placeholder="Subject"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <textarea
+                  name="message"
+                  class="form-control"
+                  rows="5"
+                  placeholder="Your Message"
+                  required
+                ></textarea>
+              </div>
+
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary">
+                  Send Message
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <div class="container">
+          <div class="footer-content">
+            <div class="footer-column">
+              <h4>Smart Quiz Portal</h4>
+              <p>
+                Innovative assessment technology for modern educational
+                institutions.
+              </p>
+            </div>
+
+            <div class="footer-column">
+              <h4>Quick Links</h4>
+              <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">Implementation</a></li>
+                <li><a href="login.html">Login</a></li>
+                <li><a href="auth/register.php">Register</a></li>
+              </ul>
+            </div>
+
+            <div class="footer-column">
+              <h4>Resources</h4>
+              <ul>
+                <li><a href="#">Documentation</a></li>
+                <li><a href="#">Teacher Guides</a></li>
+                <li><a href="#">API Access</a></li>
+                <li><a href="#">System Requirements</a></li>
+              </ul>
+            </div>
+
+            <div class="footer-column">
+              <h4>Legal</h4>
+              <ul>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Terms of Service</a></li>
+                <li><a href="#">Data Protection</a></li>
+                <li><a href="#">Compliance</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="copyright">
+            &copy; 2023 Smart Quiz Portal. All rights reserved.
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Initialize particles.js -->
+    <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    particlesJS("particles-js", {
+      "particles": {
+        "number": {
+          "value": 80,  // Fewer nodes for cleaner neural network look
+          "density": {
+            "enable": true,
+            "value_area": 900
+          }
+        },
+        "color": {
+          "value": "#4e73df"  // Blue color resembling neurons
+        },
+        "shape": {
+          "type": "circle",
+          "stroke": {
+            "width": 0,
+            "color": "#000000"
+          }
+        },
+        "opacity": {
+          "value": 0.8,
+          "random": true,
+          "anim": {
+            "enable": true,  // Enable pulsing animation
+            "speed": 1,
+            "opacity_min": 0.2,
+            "sync": false
+          }
+        },
+        "size": {
+          "value": 4,
+          "random": true,
+          "anim": {
+            "enable": true,  // Size animation for firing effect
+            "speed": 2,
+            "size_min": 2,
+            "sync": false
+          }
+        },
+        "line_linked": {
+          "enable": true,
+          "distance": 150,  // Connection distance
+          "color": "#4e73df",
+          "opacity": 0.4,
+          "width": 1.5  // Slightly thicker connections
+        },
+        "move": {
+          "enable": true,
+          "speed": 1,  // Slower movement
+          "direction": "none",
+          "random": true,
+          "straight": false,
+          "out_mode": "bounce",  // Nodes bounce at edges
+          "bounce": true,
+          "attract": {
+            "enable": true,
+            "rotateX": 600,
+            "rotateY": 1200
+          }
+        }
+      },
+      "interactivity": {
+        "detect_on": "canvas",
+        "events": {
+          "onhover": {
+            "enable": true,
+            "mode": "grab"  // Creates connections on hover
+          },
+          "onclick": {
+            "enable": true,
+            "mode": "push"  // Pushes nodes on click
+          },
+          "resize": true
+        },
+        "modes": {
+          "grab": {
+            "distance": 200,
+            "line_linked": {
+              "opacity": 0.8  // Stronger connections on hover
+            }
+          },
+          "bubble": {
+            "distance": 400,
+            "size": 40,
+            "duration": 2,
+            "opacity": 8,
+            "speed": 3
+          },
+          "repulse": {
+            "distance": 100,
+            "duration": 0.4
+          },
+          "push": {
+            "particles_nb": 4
+          },
+          "remove": {
+            "particles_nb": 2
+          }
+        }
+      },
+      "retina_detect": true
+    });
+  });
+</script>
+  </body>
+</html>
