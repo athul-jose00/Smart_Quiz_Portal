@@ -301,7 +301,7 @@ unset($class); // Break the reference
     }
 
     .class-card {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.2);
       border-radius: 16px;
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -310,8 +310,9 @@ unset($class); // Break the reference
 
     .class-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-      background: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      background: rgba(255, 255, 255, 0.08);
+      cursor: pointer;
     }
 
     .class-header {
@@ -337,13 +338,14 @@ unset($class); // Break the reference
     }
 
     .class-code {
-      background: rgba(108, 92, 231, 0.3);
+      background: rgba(108, 92, 231, 0.25);
       padding: 8px 16px;
       border-radius: 25px;
-      color: var(--primary);
-      font-weight: 600;
+      color: #ffffff;
+      font-weight: 700;
       letter-spacing: 1px;
-      font-size: 0.9rem;
+      font-size: 1rem;
+      border: 1px solid rgba(108, 92, 231, 0.4);
     }
 
     .class-teacher {
@@ -384,6 +386,7 @@ unset($class); // Break the reference
 
     .class-body {
       padding: 2rem;
+      background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(253, 121, 168, 0.1));
     }
 
     .class-section {
@@ -543,6 +546,9 @@ unset($class); // Break the reference
       border-radius: 12px;
       font-size: 0.8rem;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      //justify-content: center;
     }
   </style>
 </head>
@@ -647,7 +653,12 @@ unset($class); // Break the reference
                 <div class="class-header">
                   <div class="class-title-row">
                     <h2 class="class-title"><?php echo htmlspecialchars($class['class_name']); ?></h2>
-                    <span class="class-code"><?php echo htmlspecialchars($class['class_code']); ?></span>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                      <span class="class-code"><?php echo htmlspecialchars($class['class_code']); ?></span>
+                      <a href="class-details.php?id=<?php echo $class['class_id']; ?>" class="btn-sm btn-primary">
+                        <i class="fas fa-eye"></i> View Details
+                      </a>
+                    </div>
                   </div>
                   <div class="class-teacher">
                     <i class="fas fa-chalkboard-teacher"></i>

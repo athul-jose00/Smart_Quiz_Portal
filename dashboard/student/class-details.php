@@ -160,7 +160,7 @@ $classmates_stmt->close();
             font-size: 0.9rem;
         }
 
-        /* Menu Items */
+        /* Improved Menu Items */
         .menu-item {
             padding: 12px 20px;
             display: flex;
@@ -182,6 +182,136 @@ $classmates_stmt->close();
             width: 20px;
             text-align: center;
             font-size: 1rem;
+        }
+
+        /* Main Content Improvements */
+        .main-content {
+            padding: 2rem;
+            background: rgba(15, 15, 30, 0.8);
+            overflow-y: auto;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .page-title h1 {
+            font-size: 1.7rem;
+            margin: 0 0 0.5rem;
+            background: linear-gradient(90deg, var(--accent), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+
+        .page-title p {
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Header styles */
+        header {
+            padding: 5px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            background-color: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .header-user {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .user-dropdown-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 80%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: rgba(26, 26, 46, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px 0;
+            min-width: 200px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+        }
+
+        .user-dropdown.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(108, 92, 231, 0.2);
+            color: white;
+        }
+
+        .dropdown-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 8px 0;
         }
 
         /* Main Content */
@@ -219,8 +349,36 @@ $classmates_stmt->close();
         .meta-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            color: rgba(255, 255, 255, 0.8);
+            gap: 10px;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 12px 16px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .meta-item:hover {
+            background: rgba(0, 0, 0, 0.6);
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            color: #ffffff;
+        }
+
+        .meta-item i {
+            color: var(--accent);
+            font-size: 1.1rem;
+            width: 18px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .meta-item span {
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
         }
 
         .stats-grid {
