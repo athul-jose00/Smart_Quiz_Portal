@@ -1048,10 +1048,51 @@ $grade = getGrade($quiz_result['percentage']);
               titleColor: 'white',
               bodyColor: 'white',
               borderColor: 'rgba(255, 255, 255, 0.1)',
-              borderWidth: 1
+              borderWidth: 1,
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            },
+            datalabels: {
+              color: 'white',
+              font: {
+                size: 16,
+                weight: 'bold'
+              },
+              formatter: function(value, context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = Math.round((value / total) * 100);
+                return `${value}\n(${percentage}%)`;
+              },
+              textAlign: 'center'
             }
           }
-        }
+        },
+        plugins: [{
+          id: 'centerText',
+          beforeDraw: function(chart) {
+            const ctx = chart.ctx;
+            const centerX = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
+            const centerY = chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2;
+
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText('<?php echo $quiz_result["percentage"]; ?>%', centerX, centerY - 10);
+            ctx.font = '14px Arial';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.fillText('Overall Score', centerX, centerY + 15);
+            ctx.restore();
+          }
+        }]
       });
     });
 
