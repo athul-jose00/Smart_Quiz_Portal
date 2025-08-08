@@ -700,6 +700,217 @@ $grade = getGrade($quiz_result['percentage']);
     .btn-success:hover {
       background: #27ae60;
     }
+
+    /* AI Chat Styles */
+    .ai-chat-section {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ask-ai-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ask-ai-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .ai-chat-container {
+      margin-top: 1rem;
+      display: none;
+      animation: slideDown 0.3s ease;
+    }
+
+    .ai-chat-container.active {
+      display: block;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .quick-questions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+
+    .quick-question-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 12px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .quick-question-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .chat-input-container {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .chat-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .send-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .send-btn:hover {
+      background: var(--accent);
+    }
+
+    .send-btn:disabled {
+      background: rgba(255, 255, 255, 0.2);
+      cursor: not-allowed;
+    }
+
+    .ai-response {
+      background: rgba(102, 126, 234, 0.1);
+      border-left: 3px solid #667eea;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.6;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .user-question {
+      background: rgba(255, 255, 255, 0.1);
+      border-left: 3px solid var(--accent);
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.9rem;
+    }
+
+    .ai-response-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #667eea;
+    }
+
+    .loading-dots {
+      display: inline-block;
+    }
+
+    .loading-dots::after {
+      content: '';
+      animation: dots 1.5s steps(5, end) infinite;
+    }
+
+    @keyframes dots {
+
+      0%,
+      20% {
+        content: '.';
+      }
+
+      40% {
+        content: '..';
+      }
+
+      60% {
+        content: '...';
+      }
+
+      80%,
+      100% {
+        content: '';
+      }
+    }
+
+    .chat-history {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+    }
+
+    .chat-history::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-history::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    .chat-history::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
   </style>
 </head>
 
@@ -918,6 +1129,42 @@ $grade = getGrade($quiz_result['percentage']);
                   (+<?php echo $response['points']; ?> points)
                 <?php endif; ?>
               </div>
+
+              <!-- AI Chat Section -->
+              <div class="ai-chat-section">
+                <button class="ask-ai-btn" onclick="toggleAIChat(<?php echo $response['question_id']; ?>)">
+                  <i class="fas fa-robot"></i> Ask AI about this question
+                </button>
+
+                <div class="ai-chat-container" id="chat-<?php echo $response['question_id']; ?>">
+                  <div class="quick-questions">
+                    <button class="quick-question-btn" onclick="askQuickQuestion(<?php echo $response['question_id']; ?>, 'Why is my answer wrong?')">
+                      Why is my answer wrong?
+                    </button>
+                    <button class="quick-question-btn" onclick="askQuickQuestion(<?php echo $response['question_id']; ?>, 'Explain the correct answer')">
+                      Explain the correct answer
+                    </button>
+                    <button class="quick-question-btn" onclick="askQuickQuestion(<?php echo $response['question_id']; ?>, 'Give me similar examples')">
+                      Give me examples
+                    </button>
+                    <button class="quick-question-btn" onclick="askQuickQuestion(<?php echo $response['question_id']; ?>, 'What should I study next?')">
+                      Study tips
+                    </button>
+                  </div>
+
+                  <div class="chat-history" id="history-<?php echo $response['question_id']; ?>"></div>
+
+                  <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="input-<?php echo $response['question_id']; ?>"
+                      placeholder="Ask anything about this question..."
+                      onkeypress="handleEnter(event, <?php echo $response['question_id']; ?>)">
+
+                    <button class="send-btn" onclick="sendAIQuestion(<?php echo $response['question_id']; ?>)" id="send-<?php echo $response['question_id']; ?>">
+                      <i class="fas fa-paper-plane"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           <?php endforeach; ?>
         </div>
@@ -1058,19 +1305,6 @@ $grade = getGrade($quiz_result['percentage']);
                   return `${label}: ${value} (${percentage}%)`;
                 }
               }
-            },
-            datalabels: {
-              color: 'white',
-              font: {
-                size: 16,
-                weight: 'bold'
-              },
-              formatter: function(value, context) {
-                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = Math.round((value / total) * 100);
-                return `${value}\n(${percentage}%)`;
-              },
-              textAlign: 'center'
             }
           }
         },
@@ -1096,7 +1330,127 @@ $grade = getGrade($quiz_result['percentage']);
       });
     });
 
-    // Function to change attempt
+    // AI Chat Functions
+    function toggleAIChat(questionId) {
+      const chatContainer = document.getElementById(`chat-${questionId}`);
+      chatContainer.classList.toggle('active');
+
+      // Focus on input when opening
+      if (chatContainer.classList.contains('active')) {
+        setTimeout(() => {
+          document.getElementById(`input-${questionId}`).focus();
+        }, 100);
+      }
+    }
+
+    function askQuickQuestion(questionId, question) {
+      const input = document.getElementById(`input-${questionId}`);
+      input.value = question;
+      sendAIQuestion(questionId);
+    }
+
+    function handleEnter(event, questionId) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendAIQuestion(questionId);
+      }
+    }
+
+    async function sendAIQuestion(questionId) {
+      const input = document.getElementById(`input-${questionId}`);
+      const historyDiv = document.getElementById(`history-${questionId}`);
+      const sendBtn = document.getElementById(`send-${questionId}`);
+      const question = input.value.trim();
+
+      if (!question) return;
+
+      // Disable input and button
+      input.disabled = true;
+      sendBtn.disabled = true;
+
+      // Show user question
+      historyDiv.innerHTML += `
+        <div class="user-question">
+          <strong>You asked:</strong> ${question}
+        </div>
+      `;
+
+      // Show loading
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'ai-response';
+      loadingDiv.innerHTML = `
+        <div class="ai-response-header">
+          <i class="fas fa-robot"></i> AI Tutor
+        </div>
+        <span class="loading-dots">Thinking</span>
+      `;
+      historyDiv.appendChild(loadingDiv);
+
+      // Scroll to bottom
+      historyDiv.scrollTop = historyDiv.scrollHeight;
+
+      try {
+        const response = await fetch('../../api/ask_ai.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            question_id: questionId,
+            quiz_id: <?php echo $quiz_id; ?>,
+            user_question: question
+          })
+        });
+
+        const data = await response.json();
+
+        // Remove loading message
+        historyDiv.removeChild(loadingDiv);
+
+        if (data.success) {
+          historyDiv.innerHTML += `
+            <div class="ai-response">
+              <div class="ai-response-header">
+                <i class="fas fa-robot"></i> AI Tutor
+              </div>
+              ${data.response.replace(/\n/g, '<br>')}
+            </div>
+          `;
+          input.value = '';
+        } else {
+          historyDiv.innerHTML += `
+            <div class="ai-response" style="border-left-color: #e74c3c;">
+              <div class="ai-response-header">
+                <i class="fas fa-exclamation-triangle"></i> Error
+              </div>
+              ${data.error}
+            </div>
+          `;
+        }
+      } catch (error) {
+        // Remove loading message
+        historyDiv.removeChild(loadingDiv);
+
+        historyDiv.innerHTML += `
+          <div class="ai-response" style="border-left-color: #e74c3c;">
+            <div class="ai-response-header">
+              <i class="fas fa-exclamation-triangle"></i> Network Error
+            </div>
+            Sorry, I couldn't connect to the AI service. Please check your internet connection and try again.
+          </div>
+        `;
+      } finally {
+        // Re-enable input and button
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
+
+        // Scroll to bottom
+        historyDiv.scrollTop = historyDiv.scrollHeight;
+      }
+    }
+
+    // Attempt switching function
     function changeAttempt(attemptNumber) {
       window.location.href = `quiz-result.php?id=<?php echo $quiz_id; ?>&attempt=${attemptNumber}`;
     }
