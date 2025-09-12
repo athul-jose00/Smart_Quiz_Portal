@@ -100,4 +100,75 @@ Please provide a helpful, educational answer that relates to the quiz question. 
 
     return $this->generateContent($prompt);
   }
+
+  public function analyzeOverallQuizPerformance($analysis_data)
+  {
+    $percentage = $analysis_data['percentage'];
+    $grade = $analysis_data['grade'];
+    $correct_answers = $analysis_data['correct_answers'];
+    $total_questions = $analysis_data['total_questions'];
+    $class_average = $analysis_data['class_average'];
+    $quiz_title = $analysis_data['quiz_title'];
+    $attempt_number = $analysis_data['attempt_number'];
+    $total_attempts = $analysis_data['total_attempts'];
+
+    // Determine if this is a perfect score
+    $is_perfect = ($percentage == 100);
+
+    // Determine performance level
+    $performance_level = '';
+    if ($percentage >= 90) {
+      $performance_level = 'excellent';
+    } elseif ($percentage >= 80) {
+      $performance_level = 'very good';
+    } elseif ($percentage >= 70) {
+      $performance_level = 'good';
+    } elseif ($percentage >= 60) {
+      $performance_level = 'satisfactory';
+    } else {
+      $performance_level = 'needs improvement';
+    }
+
+    // Compare to class average
+    $comparison = '';
+    if ($percentage > $class_average) {
+      $comparison = 'above the class average';
+    } elseif ($percentage == $class_average) {
+      $comparison = 'at the class average';
+    } else {
+      $comparison = 'below the class average';
+    }
+
+    $prompt = "You are an encouraging and insightful AI tutor providing personalized feedback on a student's quiz performance.
+
+Quiz Details:
+- Quiz: {$quiz_title}
+- Student Score: {$percentage}% (Grade: {$grade})
+- Questions Correct: {$correct_answers} out of {$total_questions}
+- Class Average: {$class_average}%
+- Performance Level: {$performance_level}
+- Comparison: {$comparison}
+- Attempt: {$attempt_number} of {$total_attempts}
+
+Please provide a comprehensive analysis that includes:
+
+1. **Overall Performance Assessment**: Start with either congratulations (if perfect score) or acknowledgment of their effort
+2. **Strengths**: What they did well
+3. **Areas for Improvement**: Specific areas to focus on (if not perfect score)
+4. **Comparison Context**: How they performed relative to the class
+5. **Next Steps**: Actionable recommendations for continued learning
+6. **Encouragement**: Motivational closing remarks
+
+Guidelines:
+- If they got 100%, focus heavily on congratulations and encouragement to maintain excellence
+- If they scored below 100%, be constructive and supportive, focusing on growth opportunities
+- Be specific and actionable in your recommendations
+- Keep the tone positive and motivating
+- Use bullet points or clear sections for readability
+- Limit response to about 200-300 words
+
+Make this personal and encouraging while being educationally valuable.";
+
+    return $this->generateContent($prompt);
+  }
 }

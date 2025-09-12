@@ -458,6 +458,21 @@ unset($class); // Break the reference
       background: var(--primary);
       color: white;
     }
+    .btn{
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      justify-content: center;
+      
+    
+    }
 
     .btn-primary:hover {
       background: var(--accent);
@@ -628,7 +643,8 @@ unset($class); // Break the reference
 
           <div class="quick-actions">
             <a href="join-class.php" class="btn btn-primary">
-              <i class="fas fa-plus"></i> Join New Class
+              <i class="fas fa-plus"></i> 
+              Join New Class
             </a>
             <a href="quizzes.php" class="btn btn-outline">
               <i class="fas fa-play"></i> Take Quiz
@@ -643,8 +659,8 @@ unset($class); // Break the reference
               <i class="fas fa-users"></i>
               <h3>No Classes Enrolled</h3>
               <p>You haven't joined any classes yet. Get started by joining your first class!</p>
-              <a href="join-class.php" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Join Your First Class
+              <a href="join-class.php" class="btn btn-primary" >
+                <i class="fas fa-plus" ></i> Join Your First Class
               </a>
             </div>
           <?php else: ?>

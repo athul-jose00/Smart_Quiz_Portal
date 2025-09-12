@@ -911,6 +911,126 @@ $grade = getGrade($quiz_result['percentage']);
       background: rgba(255, 255, 255, 0.3);
       border-radius: 3px;
     }
+
+    /* Overall Analysis Section */
+    .overall-analysis-section {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .analysis-container {
+      text-align: center;
+    }
+
+    .analysis-header p {
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .analyze-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .analyze-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .analyze-btn:disabled {
+      background: rgba(255, 255, 255, 0.2);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .analysis-result {
+      margin-top: 2rem;
+      text-align: left;
+    }
+
+    .analysis-content {
+      background: rgba(102, 126, 234, 0.1);
+      border-left: 4px solid #667eea;
+      padding: 2rem;
+      border-radius: 12px;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.8;
+      font-size: 1rem;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .analysis-content h3 {
+      color: #667eea;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .analysis-content h4 {
+      color: var(--accent);
+      margin: 1.5rem 0 0.8rem 0;
+      font-size: 1.1rem;
+    }
+
+    .analysis-content ul {
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+
+    .analysis-content li {
+      margin-bottom: 0.5rem;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .analysis-content p {
+      margin-bottom: 1rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .analysis-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      padding: 2rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 1.1rem;
+    }
+
+    .analysis-loading i {
+      font-size: 1.5rem;
+      color: #667eea;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
   </style>
 </head>
 
@@ -1167,6 +1287,27 @@ $grade = getGrade($quiz_result['percentage']);
               </div>
             </div>
           <?php endforeach; ?>
+        </div>
+
+        <!-- Overall AI Analysis Section -->
+        <div class="overall-analysis-section">
+          <h2 class="section-title">
+            <i class="fas fa-brain"></i>
+            AI Performance Analysis
+          </h2>
+
+          <div class="analysis-container">
+            <div class="analysis-header">
+              <p>Get personalized feedback on your overall quiz performance, including areas of strength and improvement suggestions.</p>
+              <button class="analyze-btn" onclick="getOverallAnalysis()" id="analyzeBtn">
+                <i class="fas fa-robot"></i> Analyze My Performance
+              </button>
+            </div>
+
+            <div class="analysis-result" id="analysisResult" style="display: none;">
+              <div class="analysis-content" id="analysisContent"></div>
+            </div>
+          </div>
         </div>
 
         <!-- Action Buttons -->
@@ -1453,6 +1594,75 @@ $grade = getGrade($quiz_result['percentage']);
     // Attempt switching function
     function changeAttempt(attemptNumber) {
       window.location.href = `quiz-result.php?id=<?php echo $quiz_id; ?>&attempt=${attemptNumber}`;
+    }
+
+    // Overall Analysis Function
+    async function getOverallAnalysis() {
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      const analysisResult = document.getElementById('analysisResult');
+      const analysisContent = document.getElementById('analysisContent');
+
+      // Disable button and show loading
+      analyzeBtn.disabled = true;
+      analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+
+      analysisResult.style.display = 'block';
+      analysisContent.innerHTML = `
+        <div class="analysis-loading">
+          <i class="fas fa-brain fa-spin"></i>
+          <span>AI is analyzing your quiz performance...</span>
+        </div>
+      `;
+
+      try {
+        const response = await fetch('../../api/ask_ai.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            quiz_id: <?php echo $quiz_id; ?>,
+            user_question: 'overall_analysis',
+            analysis_data: {
+              percentage: <?php echo $quiz_result['percentage']; ?>,
+              grade: '<?php echo $grade; ?>',
+              correct_answers: <?php echo $correct_answers; ?>,
+              total_questions: <?php echo $quiz_result['total_questions']; ?>,
+              class_average: <?php echo $class_average; ?>,
+              quiz_title: '<?php echo addslashes($quiz_result['quiz_title']); ?>',
+              attempt_number: <?php echo $attempt_number; ?>,
+              total_attempts: <?php echo count($all_attempts); ?>
+            }
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          analysisContent.innerHTML = `
+            <h3><i class="fas fa-chart-line"></i> Your Performance Analysis</h3>
+            ${data.response.replace(/\n/g, '<br>')}
+          `;
+        } else {
+          analysisContent.innerHTML = `
+            <div style="color: #e74c3c;">
+              <h3><i class="fas fa-exclamation-triangle"></i> Analysis Error</h3>
+              <p>${data.error}</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        analysisContent.innerHTML = `
+          <div style="color: #e74c3c;">
+            <h3><i class="fas fa-exclamation-triangle"></i> Network Error</h3>
+            <p>Sorry, I couldn't connect to the AI service. Please check your internet connection and try again.</p>
+          </div>
+        `;
+      } finally {
+        // Re-enable button
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerHTML = '<i class="fas fa-robot"></i> Analyze My Performance';
+      }
     }
   </script>
 </body>

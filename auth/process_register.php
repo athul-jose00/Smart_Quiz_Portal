@@ -3,15 +3,17 @@ session_start();
 
 // Database configuration
 require_once '../includes/db.php';
+
 // Process form data
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
     // Get inputs
     $username = trim($_POST["username"]);
-    $name = trim($_POST["name"]);
-    $email = trim($_POST["email"]);
+    $name     = trim($_POST["name"]);
+    $email    = trim($_POST["email"]);
     $password = $_POST["password"];
     $confirm_password = $_POST["confirm_password"];
-    $role = $_POST["role"];
+    $role     = $_POST["role"];
 
     // Validation and JS alert for each error
     if (empty($username)) {
@@ -55,19 +57,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Register user
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
     $stmt = $conn->prepare("INSERT INTO users (username, name, email, password, role) VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("sssss", $username, $name, $email, $hashed_password, $role);
 
     if ($stmt->execute()) {
+        // Store a temporary flag in the session
         $_SESSION["registration_success"] = true;
         header("Location: login.php");
         exit();
     } else {
         echo "<script>alert('Registration failed. Please try again.'); window.history.back();</script>";
     }
+
     $stmt->close();
 }
 
 $conn->close();
+
 ?>

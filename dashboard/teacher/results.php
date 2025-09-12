@@ -109,10 +109,25 @@ if ($selected_quiz_id > 0) {
         $sum_sq_diff = array_sum(array_map(fn($x) => pow($x - $analytics['avg'], 2), $scores));
         $analytics['std'] = round(sqrt($sum_sq_diff / ($analytics['total'] - 1)), 2);
       }
-      // Participation Rate
-      $r = $conn->query("SELECT COUNT(*) FROM user_classes WHERE class_id=$selected_class_id");
-      $class_student_count = $r ? intval($r->fetch_row()[0]) : 0;
-      $analytics['participation'] = $class_student_count > 0 ? round(100 * $analytics['total'] / $class_student_count, 1) : null;
+      // Participation Rate - Count unique students who took the quiz
+      $unique_participants_sql = "SELECT COUNT(DISTINCT r.user_id) FROM results r WHERE r.quiz_id = ?";
+      $unique_stmt = $conn->prepare($unique_participants_sql);
+      $unique_stmt->bind_param("i", $selected_quiz_id);
+      $unique_stmt->execute();
+      $unique_result = $unique_stmt->get_result();
+      $unique_participants = $unique_result->fetch_row()[0];
+      $unique_stmt->close();
+
+      // Get total students in the class
+      $class_students_sql = "SELECT COUNT(*) FROM user_classes WHERE class_id = ?";
+      $class_stmt = $conn->prepare($class_students_sql);
+      $class_stmt->bind_param("i", $selected_class_id);
+      $class_stmt->execute();
+      $class_result = $class_stmt->get_result();
+      $class_student_count = $class_result->fetch_row()[0];
+      $class_stmt->close();
+
+      $analytics['participation'] = $class_student_count > 0 ? round(100 * $unique_participants / $class_student_count, 1) : null;
       // --- Prepare data for Chart.js ---
       $distribution = array_fill(0, 10, 0);
       foreach ($percentages as $p) {
@@ -619,7 +634,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv' && $selected_quiz_id > 0
           </div>
         </div>
         <nav class="sidebar-menu">
-          <a href="dashboard.php" class="menu-item"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
+          <a href="teacher.php" class="menu-item"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
           <a href="classes.php" class="menu-item"><i class="fas fa-users"></i>My Classes</a>
           <a href="quizzes.php" class="menu-item"><i class="fas fa-question-circle"></i>Quizzes</a>
           <a href="create-quiz.php" class="menu-item"><i class="fas fa-plus-circle"></i>Create Quiz</a>

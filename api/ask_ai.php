@@ -21,94 +21,116 @@ $input = json_decode(file_get_contents('php://input'), true);
 $question_id = intval($input['question_id'] ?? 0);
 $user_question = trim($input['user_question'] ?? '');
 $quiz_id = intval($input['quiz_id'] ?? 0);
+$analysis_data = $input['analysis_data'] ?? null;
 
-if (!$question_id || !$user_question || !$quiz_id) {
-  echo json_encode(['error' => 'Missing required fields']);
-  exit();
+// Handle overall analysis differently
+if ($user_question === 'overall_analysis') {
+  if (!$quiz_id || !$analysis_data) {
+    echo json_encode(['error' => 'Missing required fields for analysis']);
+    exit();
+  }
+} else {
+  if (!$question_id || !$user_question || !$quiz_id) {
+    echo json_encode(['error' => 'Missing required fields']);
+    exit();
+  }
 }
 
 try {
-  // Get question details with student's response
-  $question_sql = "SELECT q.question_text, q.quiz_id,
-                     o_correct.option_text as correct_answer,
-                     o_student.option_text as student_answer,
-                     c.class_name as subject
-                     FROM questions q
-                     LEFT JOIN options o_correct ON q.question_id = o_correct.question_id AND o_correct.is_correct = 1
-                     LEFT JOIN responses r ON q.question_id = r.question_id AND r.user_id = ?
-                     LEFT JOIN options o_student ON r.selected_option = o_student.option_id
-                     LEFT JOIN quizzes qz ON q.quiz_id = qz.quiz_id
-                     LEFT JOIN classes c ON qz.class_id = c.class_id
-                     WHERE q.question_id = ? AND q.quiz_id = ?";
-
-  $stmt = $conn->prepare($question_sql);
-  $stmt->bind_param("iii", $_SESSION['user_id'], $question_id, $quiz_id);
-  $stmt->execute();
-  $result = $stmt->get_result();
-  $question_data = $result->fetch_assoc();
-
-  if (!$question_data) {
-    echo json_encode(['error' => 'Question not found or access denied']);
-    exit();
-  }
-
   // Initialize Gemini AI with API key from config
   $ai = new GeminiAI(GEMINI_API_KEY);
 
-  // Determine response type based on user question
-  $user_question_lower = strtolower($user_question);
+  if ($user_question === 'overall_analysis') {
+    // Handle overall quiz analysis
+    $ai_response = $ai->analyzeOverallQuizPerformance($analysis_data);
 
-  if (
-    strpos($user_question_lower, 'explain') !== false ||
-    strpos($user_question_lower, 'why') !== false ||
-    $user_question === 'Why is my answer wrong?' ||
-    $user_question === 'Explain the correct answer'
-  ) {
-
-    // Use the explanation method
-    $ai_response = $ai->explainQuizQuestion(
-      $question_data['question_text'],
-      $question_data['correct_answer'],
-      $question_data['student_answer'] ?? 'No answer selected',
-      $question_data['subject']
-    );
-  } elseif (
-    strpos($user_question_lower, 'example') !== false ||
-    $user_question === 'Give me similar examples'
-  ) {
-
-    // Use similar examples method
-    $ai_response = $ai->getSimilarExamples(
-      $question_data['question_text'],
-      $question_data['correct_answer'],
-      $question_data['subject']
-    );
-  } elseif (
-    strpos($user_question_lower, 'study') !== false ||
-    strpos($user_question_lower, 'tip') !== false
-  ) {
-
-    // Use study tips method
-    $ai_response = $ai->getStudyTips(
-      $question_data['question_text'],
-      $question_data['subject']
-    );
+    // Save overall analysis to database
+    $save_sql = "INSERT INTO ai_conversations (user_id, quiz_id, question_id, user_question, ai_response) 
+                   VALUES (?, ?, NULL, ?, ?)";
+    $save_stmt = $conn->prepare($save_sql);
+    $save_stmt->bind_param("iiss", $_SESSION['user_id'], $quiz_id, $user_question, $ai_response);
+    $save_stmt->execute();
   } else {
-    // Use custom question method
-    $ai_response = $ai->answerCustomQuestion(
-      $question_data['question_text'],
-      $question_data['correct_answer'],
-      $user_question,
-      $question_data['subject']
-    );
-  }
+    // Handle individual question analysis
+    // Get question details with student's response
+    $question_sql = "SELECT q.question_text, q.quiz_id,
+                       o_correct.option_text as correct_answer,
+                       o_student.option_text as student_answer,
+                       c.class_name as subject
+                       FROM questions q
+                       LEFT JOIN options o_correct ON q.question_id = o_correct.question_id AND o_correct.is_correct = 1
+                       LEFT JOIN responses r ON q.question_id = r.question_id AND r.user_id = ?
+                       LEFT JOIN options o_student ON r.selected_option = o_student.option_id
+                       LEFT JOIN quizzes qz ON q.quiz_id = qz.quiz_id
+                       LEFT JOIN classes c ON qz.class_id = c.class_id
+                       WHERE q.question_id = ? AND q.quiz_id = ?";
 
-  // Save conversation to database
-  $save_sql = "INSERT INTO ai_conversations (user_id, quiz_id, question_id, user_question, ai_response) 
-                 VALUES (?, ?, ?, ?, ?)";
-  $save_stmt = $conn->prepare($save_sql);
-  $save_stmt->bind_param("iiiss", $_SESSION['user_id'], $quiz_id, $question_id, $user_question, $ai_response);
-  $save_stmt->execute();
+    $stmt = $conn->prepare($question_sql);
+    $stmt->bind_param("iii", $_SESSION['user_id'], $question_id, $quiz_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $question_data = $result->fetch_assoc();
+
+    if (!$question_data) {
+      echo json_encode(['error' => 'Question not found or access denied']);
+      exit();
+    }
+
+    // Determine response type based on user question
+    $user_question_lower = strtolower($user_question);
+
+    if (
+      strpos($user_question_lower, 'explain') !== false ||
+      strpos($user_question_lower, 'why') !== false ||
+      $user_question === 'Why is my answer wrong?' ||
+      $user_question === 'Explain the correct answer'
+    ) {
+
+      // Use the explanation method
+      $ai_response = $ai->explainQuizQuestion(
+        $question_data['question_text'],
+        $question_data['correct_answer'],
+        $question_data['student_answer'] ?? 'No answer selected',
+        $question_data['subject']
+      );
+    } elseif (
+      strpos($user_question_lower, 'example') !== false ||
+      $user_question === 'Give me similar examples'
+    ) {
+
+      // Use similar examples method
+      $ai_response = $ai->getSimilarExamples(
+        $question_data['question_text'],
+        $question_data['correct_answer'],
+        $question_data['subject']
+      );
+    } elseif (
+      strpos($user_question_lower, 'study') !== false ||
+      strpos($user_question_lower, 'tip') !== false
+    ) {
+
+      // Use study tips method
+      $ai_response = $ai->getStudyTips(
+        $question_data['question_text'],
+        $question_data['subject']
+      );
+    } else {
+      // Use custom question method
+      $ai_response = $ai->answerCustomQuestion(
+        $question_data['question_text'],
+        $question_data['correct_answer'],
+        $user_question,
+        $question_data['subject']
+      );
+    }
+
+    // Save conversation to database
+    $save_sql = "INSERT INTO ai_conversations (user_id, quiz_id, question_id, user_question, ai_response) 
+                   VALUES (?, ?, ?, ?, ?)";
+    $save_stmt = $conn->prepare($save_sql);
+    $save_stmt->bind_param("iiiss", $_SESSION['user_id'], $quiz_id, $question_id, $user_question, $ai_response);
+    $save_stmt->execute();
+  }
 
   echo json_encode([
     'success' => true,

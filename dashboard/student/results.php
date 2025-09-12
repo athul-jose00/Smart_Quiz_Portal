@@ -484,8 +484,10 @@ $trend_scores = array_reverse(array_column($trend_results, 'percentage'));
         .chart-container {
             background: rgba(255, 255, 255, 0.08);
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 2rem 1.5rem 1.5rem;
             border: 1px solid rgba(255, 255, 255, 0.12);
+            position: relative;
+            overflow: visible;
         }
 
         .chart-title {
@@ -496,7 +498,8 @@ $trend_scores = array_reverse(array_column($trend_results, 'percentage'));
         }
 
         .chart-canvas {
-            max-height: 300px;
+            max-height: 400px;
+            
         }
 
         /* Class Performance Section */
@@ -1086,6 +1089,14 @@ $trend_scores = array_reverse(array_column($trend_results, 'percentage'));
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 20,
+                            left: 10,
+                            right: 10
+                        }
+                    },
                     plugins: {
                         legend: {
                             position: 'bottom',
@@ -1093,10 +1104,12 @@ $trend_scores = array_reverse(array_column($trend_results, 'percentage'));
                                 color: 'rgba(255, 255, 255, 0.8)',
                                 font: {
                                     size: 12
-                                }
+                                },
+                                padding: 20
                             }
                         }
-                    }
+                    },
+                    aspectRatio: 1.2
                 }
             });
 
@@ -1123,11 +1136,20 @@ $trend_scores = array_reverse(array_column($trend_results, 'percentage'));
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 20,
+                            left: 10,
+                            right: 10
+                        }
+                    },
                     plugins: {
                         legend: {
                             display: false
                         }
                     },
+                    aspectRatio: 1.2,
                     scales: {
                         y: {
                             beginAtZero: true,

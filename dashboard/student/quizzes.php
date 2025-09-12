@@ -611,8 +611,10 @@ if ($total_completed > 0) {
 
     .empty-state i {
       font-size: 4rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
+      margin-top: 1rem;
       color: rgba(255, 255, 255, 0.3);
+      justify-content: center;
     }
 
     .empty-state h3 {

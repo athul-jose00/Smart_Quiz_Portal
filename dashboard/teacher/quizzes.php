@@ -184,6 +184,7 @@ unset($class); // Break the reference
             padding: 12px 20px;
             display: flex;
             align-items: center;
+            
             gap: 10px;
             color: rgba(255, 255, 255, 0.85);
             text-decoration: none;
@@ -451,9 +452,22 @@ unset($class); // Break the reference
             margin-top: 15px;
         }
 
+        /* Ensure all buttons have proper icon alignment */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            
+        }
+
         .btn-sm {
             padding: 5px 12px;
-            font-size: 0.85rem;
+            font-size: .85rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         .empty-state {
@@ -610,7 +624,7 @@ unset($class); // Break the reference
                                 <div class="empty-state" style="padding: 20px; margin-top: 15px;">
                                     <i class="fas fa-question-circle"></i>
                                     <p>No quizzes created for this class yet</p>
-                                    <a href="create-quiz.php?class_id=<?php echo $class['class_id']; ?>" class="btn btn-sm btn-primary mt-2">
+                                    <a href="create-quiz.php?class_id=<?php echo $class['class_id']; ?>" class="btn btn-sm btn-primary">
                                         <i class="fas fa-plus"></i> Create Quiz
                                     </a>
                                 </div>
@@ -639,7 +653,7 @@ unset($class); // Break the reference
                                                 <a href="edit-quiz.php?id=<?php echo $quiz['quiz_id']; ?>" class="btn btn-sm btn-primary">
                                                     <i class="fas fa-edit"></i> Edit
                                                 </a>
-                                                <a href="quiz-results.php?id=<?php echo $quiz['quiz_id']; ?>" class="btn btn-sm btn-outline">
+                                                <a href="results.php?class_id=<?php echo $class['class_id']; ?>&quiz_id=<?php echo $quiz['quiz_id']; ?>" class="btn btn-sm btn-outline">
                                                     <i class="fas fa-chart-bar"></i> Results
                                                 </a>
                                                 <a href="quizzes.php?action=delete&quiz_id=<?php echo $quiz['quiz_id']; ?>" class="btn btn-sm btn-delete" onclick="return confirm('Are you sure you want to delete this quiz?');">
