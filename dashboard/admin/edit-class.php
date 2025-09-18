@@ -200,7 +200,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       display: none;
     }
 
-    .teacher-option input[type="radio"]:checked+.teacher-info {
+    .teacher-option input[type="radio"]:checked~.teacher-info {
+      background: rgba(108, 92, 231, 0.2);
+      border-color: var(--primary);
+    }
+
+    .teacher-option:has(input[type="radio"]:checked) {
+      background: rgba(108, 92, 231, 0.15);
+      border: 1px solid var(--primary);
+      border-radius: 8px;
+    }
+
+    .teacher-option:has(input[type="radio"]:checked) .teacher-info {
+      background: rgba(108, 92, 231, 0.2);
+      border-color: var(--primary);
+    }
+
+    /* JavaScript-controlled selected state for better browser compatibility */
+    .teacher-option.selected {
+      background: rgba(108, 92, 231, 0.15);
+      border: 1px solid var(--primary);
+      border-radius: 8px;
+    }
+
+    .teacher-option.selected .teacher-info {
       background: rgba(108, 92, 231, 0.2);
       border-color: var(--primary);
     }
@@ -476,6 +499,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Auto-uppercase class code
     document.getElementById('class_code').addEventListener('input', function(e) {
       e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    });
+
+    // Handle teacher selection highlighting
+    document.querySelectorAll('input[name="teacher_id"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        // Remove highlight from all teacher options
+        document.querySelectorAll('.teacher-option').forEach(option => {
+          option.classList.remove('selected');
+        });
+
+        // Add highlight to selected teacher option
+        if (this.checked) {
+          this.closest('.teacher-option').classList.add('selected');
+        }
+      });
+
+      // Set initial state
+      if (radio.checked) {
+        radio.closest('.teacher-option').classList.add('selected');
+      }
     });
 
     // Form validation

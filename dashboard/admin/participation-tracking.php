@@ -8,43 +8,96 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
   exit();
 }
 
+$error_message = '';
+
+// Get filter parameters
+$class_filter = $_GET['class'] ?? '';
+$quiz_filter = $_GET['quiz'] ?? '';
+$date_filter = $_GET['date'] ?? '';
+
+// Build WHERE clause for filters
+$where_conditions = [];
+$params = [];
+
+if ($class_filter) {
+  $where_conditions[] = "c.class_id = ?";
+  $params[] = $class_filter;
+}
+
+if ($quiz_filter) {
+  $where_conditions[] = "q.quiz_id = ?";
+  $params[] = $quiz_filter;
+}
+
+if ($date_filter) {
+  $where_conditions[] = "DATE(r.completed_at) = ?";
+  $params[] = $date_filter;
+}
+
+$where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
+
 // Get participation data
 try {
-  $stmt = $pdo->query("
-        SELECT 
-            u.id as student_id,
-            u.username as student_name,
-            u.email as student_email,
-            COUNT(DISTINCT qr.quiz_id) as quizzes_taken,
-            AVG(qr.score) as avg_score,
-            MAX(qr.completed_at) as last_activity,
-            c.name as class_name
-        FROM users u
-        LEFT JOIN quiz_results qr ON u.id = qr.student_id
-        LEFT JOIN class_students cs ON u.id = cs.student_id
-        LEFT JOIN classes c ON cs.class_id = c.id
-        WHERE u.role = 'student'
-        GROUP BY u.id, u.username, u.email, c.name
-        ORDER BY quizzes_taken DESC, avg_score DESC
-    ");
-  $students = $stmt->fetchAll();
-
-  // Get overall statistics
-  $stats_stmt = $pdo->query("
-        SELECT 
-            COUNT(DISTINCT u.id) as total_students,
-            COUNT(DISTINCT qr.quiz_id) as total_quizzes,
-            COUNT(qr.id) as total_attempts,
-            AVG(qr.score) as overall_avg_score
-        FROM users u
-        LEFT JOIN quiz_results qr ON u.id = qr.student_id
-        WHERE u.role = 'student'
-    ");
-  $stats = $stats_stmt->fetch();
+  $stmt = $pdo->prepare("
+    SELECT r.quiz_id, r.user_id, r.percentage as score, r.completed_at as created_at,
+           u.name as student_name, u.username as student_username,
+           q.title as quiz_title, q.time_limit,
+           c.class_name, c.class_code,
+           t.name as teacher_name
+    FROM results r
+    JOIN users u ON r.user_id = u.user_id
+    JOIN quizzes q ON r.quiz_id = q.quiz_id
+    JOIN classes c ON q.class_id = c.class_id
+    JOIN users t ON q.created_by = t.user_id
+    $where_clause
+    ORDER BY r.completed_at DESC
+  ");
+  $stmt->execute($params);
+  $participations = $stmt->fetchAll();
 } catch (PDOException $e) {
-  $students = [];
-  $stats = ['total_students' => 0, 'total_quizzes' => 0, 'total_attempts' => 0, 'overall_avg_score' => 0];
+  $participations = [];
   $error_message = "Error fetching participation data: " . $e->getMessage();
+}
+
+// Get classes for filter dropdown
+try {
+  $stmt = $pdo->query("SELECT class_id, class_name, class_code FROM classes ORDER BY class_name ASC");
+  $classes = $stmt->fetchAll();
+} catch (PDOException $e) {
+  $classes = [];
+}
+
+// Get quizzes for filter dropdown
+try {
+  $stmt = $pdo->query("SELECT quiz_id, title FROM quizzes ORDER BY title ASC");
+  $quizzes = $stmt->fetchAll();
+} catch (PDOException $e) {
+  $quizzes = [];
+}
+
+// Get participation statistics
+$stats = [];
+try {
+  $stmt = $pdo->prepare("
+    SELECT 
+      COUNT(*) as total_attempts,
+      COUNT(DISTINCT r.user_id) as unique_participants,
+      AVG(r.percentage) as avg_score,
+      COUNT(CASE WHEN r.percentage >= 80 THEN 1 END) as high_scores
+    FROM results r
+    JOIN quizzes q ON r.quiz_id = q.quiz_id
+    JOIN classes c ON q.class_id = c.class_id
+    $where_clause
+  ");
+  $stmt->execute($params);
+  $stats = $stmt->fetch();
+} catch (PDOException $e) {
+  $stats = [
+    'total_attempts' => 0,
+    'unique_participants' => 0,
+    'avg_score' => 0,
+    'high_scores' => 0
+  ];
 }
 ?>
 
@@ -102,9 +155,93 @@ try {
       box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
     }
 
-    .stats-overview {
+    .filters-section {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .filters-form {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      align-items: end;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    .form-control {
+      padding: 12px 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: white;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+    }
+
+    .form-control option {
+      background: #2d3748;
+      color: white;
+    }
+
+    .btn-filter {
+      background: linear-gradient(135deg, var(--success), #00cec9);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);
+    }
+
+    .btn-filter:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 184, 148, 0.6);
+    }
+
+    .btn-clear {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .btn-clear:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
       margin-bottom: 30px;
     }
@@ -116,47 +253,40 @@ try {
       border: 1px solid rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(10px);
       text-align: center;
-      transition: all 0.3s ease;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
 
     .stat-icon {
-      width: 50px;
-      height: 50px;
-      border-radius: 12px;
+      width: 60px;
+      height: 60px;
+      border-radius: 15px;
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0 auto 15px;
-      font-size: 1.3rem;
+      font-size: 1.5rem;
       color: white;
-    }
-
-    .stat-icon.students {
-      background: linear-gradient(135deg, var(--success), #00cec9);
-    }
-
-    .stat-icon.quizzes {
-      background: linear-gradient(135deg, var(--warning), #e17055);
     }
 
     .stat-icon.attempts {
       background: linear-gradient(135deg, var(--primary), var(--secondary));
     }
 
-    .stat-icon.average {
-      background: linear-gradient(135deg, var(--accent), #fd79a8);
+    .stat-icon.participants {
+      background: linear-gradient(135deg, var(--success), #00cec9);
+    }
+
+    .stat-icon.score {
+      background: linear-gradient(135deg, var(--warning), #e17055);
+    }
+
+    .stat-icon.high-scores {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
     }
 
     .stat-number {
       font-size: 2rem;
-      font-weight: bold;
+      font-weight: 700;
       color: white;
-      display: block;
       margin-bottom: 5px;
     }
 
@@ -164,7 +294,7 @@ try {
       color: rgba(255, 255, 255, 0.7);
       font-size: 0.9rem;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
     }
 
     .participation-table-container {
@@ -196,8 +326,6 @@ try {
       text-transform: uppercase;
       letter-spacing: 1px;
       font-size: 0.9rem;
-      position: sticky;
-      top: 0;
     }
 
     .participation-table td {
@@ -211,66 +339,45 @@ try {
     .student-info {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .student-avatar {
-      width: 40px;
-      height: 40px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      background: var(--accent);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
-
-    .student-details h4 {
-      margin: 0;
-      color: white;
-      font-size: 1rem;
-    }
-
-    .student-details p {
-      margin: 0;
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 0.85rem;
-    }
-
-    .participation-level {
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      font-size: 0.8rem;
+      color: white;
     }
 
-    .level-high {
-      background: rgba(0, 184, 148, 0.2);
-      color: var(--success);
-      border: 1px solid rgba(0, 184, 148, 0.3);
+    .quiz-badge {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 4px 10px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      font-weight: 500;
     }
 
-    .level-medium {
-      background: rgba(253, 203, 110, 0.2);
-      color: var(--warning);
-      border: 1px solid rgba(253, 203, 110, 0.3);
-    }
-
-    .level-low {
-      background: rgba(214, 48, 49, 0.2);
-      color: var(--danger);
-      border: 1px solid rgba(214, 48, 49, 0.3);
+    .class-badge {
+      background: linear-gradient(135deg, var(--success), #00cec9);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      font-weight: 500;
     }
 
     .score-badge {
-      padding: 4px 10px;
-      border-radius: 15px;
-      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-radius: 20px;
       font-weight: 600;
+      font-size: 0.9rem;
     }
 
     .score-excellent {
@@ -283,26 +390,9 @@ try {
       color: var(--warning);
     }
 
-    .score-poor {
-      background: rgba(214, 48, 49, 0.2);
+    .score-average {
+      background: rgba(255, 107, 107, 0.2);
       color: var(--danger);
-    }
-
-    .last-activity {
-      font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.7);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .empty-state i {
-      font-size: 4rem;
-      margin-bottom: 20px;
-      opacity: 0.5;
     }
 
     .alert {
@@ -318,11 +408,31 @@ try {
       color: var(--danger);
     }
 
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
     @media (max-width: 768px) {
       .page-header {
         flex-direction: column;
         gap: 20px;
         text-align: center;
+      }
+
+      .filters-form {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
 
       .participation-table-container {
@@ -337,12 +447,6 @@ try {
       .participation-table td {
         padding: 10px 8px;
       }
-
-      .student-info {
-        flex-direction: column;
-        gap: 8px;
-        text-align: center;
-      }
     }
   </style>
 </head>
@@ -353,129 +457,174 @@ try {
   <div class="admin-container">
     <div class="page-header">
       <h1 class="page-title">Student Participation Tracking</h1>
-      <a href="index.php" class="back-btn">
+      <a href="admin.php" class="back-btn">
         <i class="fas fa-arrow-left"></i> Back to Dashboard
       </a>
     </div>
 
-    <?php if (isset($error_message)): ?>
+    <?php if ($error_message): ?>
       <div class="alert alert-error">
         <i class="fas fa-exclamation-circle"></i> <?php echo $error_message; ?>
       </div>
     <?php endif; ?>
 
-    <!-- Statistics Overview -->
-    <div class="stats-overview">
-      <div class="stat-card">
-        <div class="stat-icon students">
-          <i class="fas fa-user-graduate"></i>
-        </div>
-        <span class="stat-number"><?php echo $stats['total_students']; ?></span>
-        <span class="stat-label">Total Students</span>
-      </div>
+    <!-- Filters Section -->
+    <div class="filters-section">
+      <h2 style="color: white; margin: 0 0 20px 0; font-size: 1.3rem; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-filter"></i> Filter Participation Data
+      </h2>
 
-      <div class="stat-card">
-        <div class="stat-icon quizzes">
-          <i class="fas fa-clipboard-list"></i>
+      <form method="GET" class="filters-form">
+        <div class="form-group">
+          <label for="class">Filter by Class</label>
+          <select id="class" name="class" class="form-control">
+            <option value="">All Classes</option>
+            <?php foreach ($classes as $class): ?>
+              <option value="<?php echo $class['class_id']; ?>" <?php echo $class_filter == $class['class_id'] ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($class['class_name']); ?> (<?php echo htmlspecialchars($class['class_code']); ?>)
+              </option>
+            <?php endforeach; ?>
+          </select>
         </div>
-        <span class="stat-number"><?php echo $stats['total_quizzes']; ?></span>
-        <span class="stat-label">Available Quizzes</span>
-      </div>
 
+        <div class="form-group">
+          <label for="quiz">Filter by Quiz</label>
+          <select id="quiz" name="quiz" class="form-control">
+            <option value="">All Quizzes</option>
+            <?php foreach ($quizzes as $quiz): ?>
+              <option value="<?php echo $quiz['quiz_id']; ?>" <?php echo $quiz_filter == $quiz['quiz_id'] ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($quiz['title']); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="date">Filter by Date</label>
+          <input type="date" id="date" name="date" class="form-control" value="<?php echo htmlspecialchars($date_filter); ?>">
+        </div>
+
+        <div class="form-group">
+          <button type="submit" class="btn-filter">
+            <i class="fas fa-search"></i> Apply Filters
+          </button>
+        </div>
+
+        <div class="form-group">
+          <a href="participation-tracking.php" class="btn-clear">
+            <i class="fas fa-times"></i> Clear Filters
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon attempts">
-          <i class="fas fa-chart-line"></i>
+          <i class="fas fa-clipboard-check"></i>
         </div>
-        <span class="stat-number"><?php echo $stats['total_attempts']; ?></span>
-        <span class="stat-label">Total Attempts</span>
+        <div class="stat-number"><?php echo $stats['total_attempts']; ?></div>
+        <div class="stat-label">Total Attempts</div>
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon average">
+        <div class="stat-icon participants">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-number"><?php echo $stats['unique_participants']; ?></div>
+        <div class="stat-label">Unique Participants</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon score">
+          <i class="fas fa-percentage"></i>
+        </div>
+        <div class="stat-number"><?php echo round($stats['avg_score'] ?? 0, 1); ?>%</div>
+        <div class="stat-label">Average Score</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon high-scores">
           <i class="fas fa-trophy"></i>
         </div>
-        <span class="stat-number"><?php echo $stats['overall_avg_score'] ? round($stats['overall_avg_score'], 1) . '%' : '0%'; ?></span>
-        <span class="stat-label">Overall Average</span>
+        <div class="stat-number"><?php echo $stats['high_scores']; ?></div>
+        <div class="stat-label">High Scores (80%+)</div>
       </div>
     </div>
 
     <div class="participation-table-container">
-      <?php if (empty($students)): ?>
+      <h2 style="color: white; margin: 0 0 20px 0; font-size: 1.3rem; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-chart-bar"></i> Participation Details
+      </h2>
+
+      <?php if (empty($participations)): ?>
         <div class="empty-state">
-          <i class="fas fa-users"></i>
-          <h3>No Student Data Found</h3>
-          <p>Student participation data will appear here once students start taking quizzes.</p>
+          <i class="fas fa-chart-bar"></i>
+          <h3>No Participation Data Found</h3>
+          <p>No quiz attempts match your current filters.</p>
         </div>
       <?php else: ?>
         <table class="participation-table">
           <thead>
             <tr>
               <th>Student</th>
+              <th>Quiz</th>
               <th>Class</th>
-              <th>Quizzes Taken</th>
-              <th>Average Score</th>
-              <th>Participation Level</th>
-              <th>Last Activity</th>
+              <th>Teacher</th>
+              <th>Score</th>
+              <th>Time Limit</th>
+              <th>Completed At</th>
             </tr>
           </thead>
           <tbody>
-            <?php foreach ($students as $student): ?>
+            <?php foreach ($participations as $participation): ?>
               <tr>
                 <td>
                   <div class="student-info">
                     <div class="student-avatar">
-                      <?php echo strtoupper(substr($student['student_name'], 0, 1)); ?>
+                      <?php echo strtoupper(substr($participation['student_name'], 0, 1)); ?>
                     </div>
-                    <div class="student-details">
-                      <h4><?php echo htmlspecialchars($student['student_name']); ?></h4>
-                      <p><?php echo htmlspecialchars($student['student_email']); ?></p>
+                    <div>
+                      <div><?php echo htmlspecialchars($participation['student_name']); ?></div>
+                      <small style="color: rgba(255,255,255,0.6);">@<?php echo htmlspecialchars($participation['student_username']); ?></small>
                     </div>
                   </div>
                 </td>
-                <td><?php echo htmlspecialchars($student['class_name'] ?: 'Not assigned'); ?></td>
                 <td>
-                  <strong><?php echo $student['quizzes_taken'] ?: '0'; ?></strong>
-                </td>
-                <td>
-                  <?php if ($student['avg_score']): ?>
-                    <?php
-                    $score = round($student['avg_score'], 1);
-                    $score_class = $score >= 80 ? 'score-excellent' : ($score >= 60 ? 'score-good' : 'score-poor');
-                    ?>
-                    <span class="score-badge <?php echo $score_class; ?>">
-                      <?php echo $score; ?>%
-                    </span>
-                  <?php else: ?>
-                    <span class="score-badge score-poor">No attempts</span>
-                  <?php endif; ?>
-                </td>
-                <td>
-                  <?php
-                  $quizzes_taken = $student['quizzes_taken'] ?: 0;
-                  if ($quizzes_taken >= 5) {
-                    $level_class = 'level-high';
-                    $level_text = 'High';
-                  } elseif ($quizzes_taken >= 2) {
-                    $level_class = 'level-medium';
-                    $level_text = 'Medium';
-                  } else {
-                    $level_class = 'level-low';
-                    $level_text = 'Low';
-                  }
-                  ?>
-                  <span class="participation-level <?php echo $level_class; ?>">
-                    <?php echo $level_text; ?>
+                  <span class="quiz-badge">
+                    <?php echo htmlspecialchars($participation['quiz_title']); ?>
                   </span>
                 </td>
                 <td>
-                  <div class="last-activity">
-                    <?php
-                    if ($student['last_activity']) {
-                      echo date('M j, Y', strtotime($student['last_activity']));
-                    } else {
-                      echo 'Never';
-                    }
-                    ?>
+                  <span class="class-badge">
+                    <?php echo htmlspecialchars($participation['class_code']); ?>
+                  </span>
+                  <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 5px;">
+                    <?php echo htmlspecialchars($participation['class_name']); ?>
+                  </div>
+                </td>
+                <td>
+                  <?php echo htmlspecialchars($participation['teacher_name']); ?>
+                </td>
+                <td>
+                  <?php
+                  $score = $participation['score'];
+                  $score_class = 'score-average';
+                  if ($score >= 80) $score_class = 'score-excellent';
+                  elseif ($score >= 60) $score_class = 'score-good';
+                  ?>
+                  <span class="score-badge <?php echo $score_class; ?>">
+                    <?php echo $score; ?>%
+                  </span>
+                </td>
+                <td>
+                  <?php echo $participation['time_limit']; ?> min
+                </td>
+                <td>
+                  <?php echo date('M j, Y', strtotime($participation['created_at'])); ?>
+                  <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">
+                    <?php echo date('g:i A', strtotime($participation['created_at'])); ?>
                   </div>
                 </td>
               </tr>

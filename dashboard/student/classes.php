@@ -10,6 +10,49 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'student') {
 
 $user_id = $_SESSION['user_id'];
 
+// Handle leave class request
+if (isset($_GET['action']) && $_GET['action'] === 'leave' && isset($_GET['class_id'])) {
+  $class_id = intval($_GET['class_id']);
+
+  // Verify student is enrolled in this class
+  $verify_sql = "SELECT class_id FROM user_classes WHERE user_id = ? AND class_id = ?";
+  $verify_stmt = $conn->prepare($verify_sql);
+  $verify_stmt->bind_param("ii", $user_id, $class_id);
+  $verify_stmt->execute();
+  $verify_result = $verify_stmt->get_result();
+  $verify_stmt->close();
+
+  if ($verify_result->num_rows > 0) {
+    // Remove student from class
+    $leave_sql = "DELETE FROM user_classes WHERE user_id = ? AND class_id = ?";
+    $leave_stmt = $conn->prepare($leave_sql);
+    $leave_stmt->bind_param("ii", $user_id, $class_id);
+
+    if ($leave_stmt->execute()) {
+      $success_message = "You have successfully left the class.";
+    } else {
+      $error_message = "Error leaving class. Please try again.";
+    }
+    $leave_stmt->close();
+  } else {
+    $error_message = "You are not enrolled in this class.";
+  }
+
+  // Redirect to avoid resubmission
+  $message = isset($success_message) ? $success_message : $error_message;
+  header("Location: classes.php?message=" . urlencode($message));
+  exit();
+}
+
+// Get message from URL if present
+if (isset($_GET['message'])) {
+  if (strpos($_GET['message'], 'successfully') !== false) {
+    $success_message = $_GET['message'];
+  } else {
+    $error_message = $_GET['message'];
+  }
+}
+
 // Get student's name
 $sql = "SELECT name FROM users WHERE user_id = ?";
 $stmt = $conn->prepare($sql);
@@ -458,7 +501,8 @@ unset($class); // Break the reference
       background: var(--primary);
       color: white;
     }
-    .btn{
+
+    .btn {
       padding: 10px 20px;
       border-radius: 8px;
       text-decoration: none;
@@ -470,8 +514,8 @@ unset($class); // Break the reference
       gap: 8px;
       flex: 1;
       justify-content: center;
-      
-    
+
+
     }
 
     .btn-primary:hover {
@@ -565,6 +609,107 @@ unset($class); // Break the reference
       align-items: center;
       //justify-content: center;
     }
+
+    /* Alert Messages */
+    .alert {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .alert-success {
+      background: rgba(46, 204, 113, 0.2);
+      border: 1px solid rgba(46, 204, 113, 0.3);
+      color: #2ecc71;
+    }
+
+    .alert-error {
+      background: rgba(231, 76, 60, 0.2);
+      border: 1px solid rgba(231, 76, 60, 0.3);
+      color: #e74c3c;
+    }
+
+    .btn-danger {
+      background: rgba(231, 76, 60, 0.2);
+      color: #e74c3c;
+      border: 1px solid rgba(231, 76, 60, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: rgba(231, 76, 60, 0.4);
+      color: white;
+    }
+
+    /* Confirmation Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: rgba(26, 26, 46, 0.98);
+      padding: 25px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content h3 {
+      color: white;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+
+    .modal-content p {
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .modal-btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .modal-cancel {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .modal-cancel:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .modal-confirm {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .modal-confirm:hover {
+      background: #c0392b;
+    }
   </style>
 </head>
 
@@ -643,7 +788,7 @@ unset($class); // Break the reference
 
           <div class="quick-actions">
             <a href="join-class.php" class="btn btn-primary">
-              <i class="fas fa-plus"></i> 
+              <i class="fas fa-plus"></i>
               Join New Class
             </a>
             <a href="quizzes.php" class="btn btn-outline">
@@ -652,6 +797,19 @@ unset($class); // Break the reference
           </div>
         </div>
 
+        <!-- Alert Messages -->
+        <?php if (isset($success_message)): ?>
+          <div class="alert alert-success">
+            <?php echo htmlspecialchars($success_message); ?>
+          </div>
+        <?php endif; ?>
+
+        <?php if (isset($error_message)): ?>
+          <div class="alert alert-error">
+            <?php echo htmlspecialchars($error_message); ?>
+          </div>
+        <?php endif; ?>
+
         <!-- Classes Container -->
         <div class="classes-container">
           <?php if (empty($enrolled_classes)): ?>
@@ -659,8 +817,8 @@ unset($class); // Break the reference
               <i class="fas fa-users"></i>
               <h3>No Classes Enrolled</h3>
               <p>You haven't joined any classes yet. Get started by joining your first class!</p>
-              <a href="join-class.php" class="btn btn-primary" >
-                <i class="fas fa-plus" ></i> Join Your First Class
+              <a href="join-class.php" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Join Your First Class
               </a>
             </div>
           <?php else: ?>
@@ -671,9 +829,14 @@ unset($class); // Break the reference
                     <h2 class="class-title"><?php echo htmlspecialchars($class['class_name']); ?></h2>
                     <div style="display: flex; align-items: center; gap: 15px;">
                       <span class="class-code"><?php echo htmlspecialchars($class['class_code']); ?></span>
-                      <a href="class-details.php?id=<?php echo $class['class_id']; ?>" class="btn-sm btn-primary">
-                        <i class="fas fa-eye"></i> View Details
-                      </a>
+                      <div style="display: flex; gap: 8px;">
+                        <a href="class-details.php?id=<?php echo $class['class_id']; ?>" class="btn-sm btn-primary">
+                          <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <button class="btn-sm btn-danger" onclick="confirmLeaveClass(<?php echo $class['class_id']; ?>, '<?php echo htmlspecialchars(addslashes($class['class_name'])); ?>')">
+                          <i class="fas fa-sign-out-alt"></i> Leave
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <div class="class-teacher">
@@ -782,6 +945,18 @@ unset($class); // Break the reference
     </div>
   </div>
 
+  <!-- Leave Class Confirmation Modal -->
+  <div id="leaveModal" class="modal">
+    <div class="modal-content">
+      <h3>Leave Class</h3>
+      <p id="leaveMessage">Are you sure you want to leave this class?</p>
+      <div class="modal-actions">
+        <button class="modal-btn modal-cancel" onclick="closeLeaveModal()">Cancel</button>
+        <button class="modal-btn modal-confirm" id="confirmLeaveBtn">Leave Class</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
   <script>
     // Particles.js initialization
@@ -851,6 +1026,34 @@ unset($class); // Break the reference
           dropdownMenu.classList.remove("show");
         }
       });
+    });
+
+    // Leave class functionality
+    let classToLeave = null;
+
+    function confirmLeaveClass(classId, className) {
+      classToLeave = classId;
+      document.getElementById('leaveMessage').textContent =
+        `Are you sure you want to leave "${className}"? This action cannot be undone and you will lose access to all class materials and quiz results.`;
+      document.getElementById('leaveModal').style.display = 'flex';
+    }
+
+    function closeLeaveModal() {
+      document.getElementById('leaveModal').style.display = 'none';
+      classToLeave = null;
+    }
+
+    document.getElementById('confirmLeaveBtn').addEventListener('click', function() {
+      if (classToLeave) {
+        window.location.href = `classes.php?action=leave&class_id=${classToLeave}`;
+      }
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+      if (event.target === document.getElementById('leaveModal')) {
+        closeLeaveModal();
+      }
     });
   </script>
 </body>

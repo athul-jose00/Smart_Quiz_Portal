@@ -737,7 +737,7 @@ try {
               <i class="fas fa-user-plus"></i>
               Add New User
             </a>
-            
+
           </div>
         </div>
 
@@ -760,10 +760,6 @@ try {
             <a href="assign-students.php" class="action-btn">
               <i class="fas fa-user-plus"></i>
               Assign Students to Classes
-            </a>
-            <a href="class-reports.php" class="action-btn">
-              <i class="fas fa-chart-bar"></i>
-              Class Performance Reports
             </a>
           </div>
         </div>

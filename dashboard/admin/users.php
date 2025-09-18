@@ -267,7 +267,7 @@ try {
   <div class="admin-container">
     <div class="page-header">
       <h1 class="page-title">User Management</h1>
-      <a href="index.php" class="back-btn">
+      <a href="admin.php" class="back-btn">
         <i class="fas fa-arrow-left"></i> Back to Dashboard
       </a>
     </div>

@@ -25,8 +25,8 @@ try {
   $stmt = $pdo->query("
     SELECT c.class_id, c.class_name, c.class_code, c.teacher_id,
            u.name as teacher_name, u.username as teacher_username,
-           COUNT(uc.user_id) as student_count,
-           COUNT(q.quiz_id) as quiz_count
+           COUNT(DISTINCT uc.user_id) as student_count,
+           COUNT(DISTINCT q.quiz_id) as quiz_count
     FROM classes c
     LEFT JOIN users u ON c.teacher_id = u.user_id
     LEFT JOIN user_classes uc ON c.class_id = uc.class_id
@@ -321,7 +321,7 @@ try {
   <div class="admin-container">
     <div class="page-header">
       <h1 class="page-title">Class Management</h1>
-      <a href="index.php" class="back-btn">
+      <a href="admin.php" class="back-btn">
         <i class="fas fa-arrow-left"></i> Back to Dashboard
       </a>
     </div>

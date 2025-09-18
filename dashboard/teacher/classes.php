@@ -692,7 +692,7 @@ $total_classes = $classes_result->num_rows;
                                     <td>
                                         <div class="action-buttons">
                                             <a href="class-details.php?id=<?php echo $class['class_id']; ?>" class="action-btn view-btn">
-                                                <i class="fas fa-users"></i> Students
+                                                <i class="fas fa-info-circle"></i> Details
                                             </a>
                                             <a href="results.php?class_id=<?php echo $class['class_id']; ?>" class="action-btn view-btn" style="background: rgba(46, 204, 113, 0.2); color: #2ecc71;">
                                                 <i class="fas fa-chart-bar"></i> Results

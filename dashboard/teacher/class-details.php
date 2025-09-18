@@ -751,13 +751,13 @@ foreach ($parts as $p) {
                     <p>Class Code: <span class="class-code-display"><?php echo htmlspecialchars($class['class_code']); ?></span></p>
                 </div>
 
-                <?php if (isset($success_message)): ?>
+                <?php if (isset($success_message) && !empty($success_message)): ?>
                     <div class="alert alert-success">
                         <?php echo $success_message; ?>
                     </div>
                 <?php endif; ?>
 
-                <?php if (isset($error_message)): ?>
+                <?php if (isset($error_message) && !empty($error_message)): ?>
                     <div class="alert alert-error">
                         <?php echo $error_message; ?>
                     </div>
@@ -799,7 +799,7 @@ foreach ($parts as $p) {
                                         </div>
                                     </div>
                                     <div class="quiz-actions">
-                                        <a href="quiz-results.php?id=<?php echo $quiz['quiz_id']; ?>" class="action-btn view-btn">
+                                        <a href="results.php?quiz_id=<?php echo $quiz['quiz_id']; ?>&class_id=<?php echo $class_id; ?>" class="action-btn view-btn">
                                             <i class="fas fa-chart-bar"></i> Results
                                         </a>
                                         <a href="edit-quiz.php?id=<?php echo $quiz['quiz_id']; ?>" class="action-btn view-btn">
